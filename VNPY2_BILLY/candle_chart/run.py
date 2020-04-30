@@ -9,11 +9,11 @@ if __name__ == "__main__":
     app = create_qapp()
 
     bars = database_manager.load_bar_data(
-        "IF888",
-        Exchange.CFFEX,
+        "12087792",
+        Exchange.IDEALPRO,
         interval=Interval.MINUTE,
-        start=datetime(2019, 7, 1),
-        end=datetime(2019, 7, 17)
+        start=datetime(2019, 9, 30),
+        end=datetime(2019, 10, 1)
     )
 
     widget = ChartWidget()
