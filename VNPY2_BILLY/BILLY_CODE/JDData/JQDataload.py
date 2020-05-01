@@ -1,162 +1,158 @@
 # encoding: UTF-8
 
-from __future__ import print_function
 import json
-from datetime import datetime,date,timedelta
-from time import time
-
-from pymongo import MongoClient, ASCENDING
+from datetime import datetime, timedelta
 
 from vnpy.trader.constant import Exchange, Interval
 from typing import List
+import time
 from vnpy.trader.object import (
-    BarData
+	BarData
 )
 from vnpy.trader.database import database_manager
 import jqdatasdk as jq
 
 
-
 class JQDataService:
-    """
-    Service for download market data from Joinquant
-    """
-    def __init__(self):
-        # 加载配置
-        config = open('config.json')
-        setting = json.load(config)
+	"""
+	Service for download market data from Joinquant
+	"""
 
-        USERNAME = setting['jqdata.Username']
-        PASSWORD = setting['jqdata.Password']
+	def __init__(self):
+		# 加载配置
+		config = open('config.json')
+		self.setting = json.load(config)
 
-        try:
-            jq.auth(USERNAME,PASSWORD)
-        except Exception as ex:
-            print("jq auth fail:" + repr(ex))
+		USERNAME = self.setting['jqdata.Username']
+		PASSWORD = self.setting['jqdata.Password']
 
-    def to_jq_symbol(self, symbol: str, exchange: Exchange):
-        """
-        CZCE product of RQData has symbol like "TA1905" while
-        vt symbol is "TA905.CZCE" so need to add "1" in symbol.
-        """
-        if exchange in [Exchange.SSE, Exchange.SZSE]:
-            if exchange == Exchange.SSE:
-                jq_symbol = f"{symbol}.XSHG"  # 上海证券交易所
-            else:
-                jq_symbol = f"{symbol}.XSHE"  # 深圳证券交易所
-        elif exchange == Exchange.SHFE:
-            jq_symbol = f"{symbol}.XSGE"  # 上期所
-        elif exchange == Exchange.CFFEX:
-            jq_symbol = f"{symbol}.CCFX"  # 中金所
-        elif exchange == Exchange.DCE:
-            jq_symbol = f"{symbol}.XDCE"  # 大商所
-        elif exchange == Exchange.INE:
-            jq_symbol = f"{symbol}.XINE"  # 上海国际能源期货交易所
-        elif exchange == Exchange.CZCE:
-            # 郑商所 的合约代码年份只有三位 需要特殊处理
-            for count, word in enumerate(symbol):
-                if word.isdigit():
-                    break
+		try:
+			jq.auth(USERNAME, PASSWORD)
+		except Exception as ex:
+			print("jq auth fail:" + repr(ex))
 
-            # Check for index symbol
-            time_str = symbol[count:]
-            if time_str in ["88", "888", "99", "8888"]:
-                return symbol
+	def to_jq_symbol(self, symbol: str, exchange: Exchange):
+		"""
+		CZCE product of RQData has symbol like "TA1905" while
+		vt symbol is "TA905.CZCE" so need to add "1" in symbol.
+		"""
+		if exchange in [Exchange.SSE, Exchange.SZSE]:
+			if exchange == Exchange.SSE:
+				jq_symbol = f"{symbol}.XSHG"  # 上海证券交易所
+			else:
+				jq_symbol = f"{symbol}.XSHE"  # 深圳证券交易所
+		elif exchange == Exchange.SHFE:
+			jq_symbol = f"{symbol}.XSGE"  # 上期所
+		elif exchange == Exchange.CFFEX:
+			jq_symbol = f"{symbol}.CCFX"  # 中金所
+		elif exchange == Exchange.DCE:
+			jq_symbol = f"{symbol}.XDCE"  # 大商所
+		elif exchange == Exchange.INE:
+			jq_symbol = f"{symbol}.XINE"  # 上海国际能源期货交易所
+		elif exchange == Exchange.CZCE:
+			# 郑商所 的合约代码年份只有三位 需要特殊处理
+			for count, word in enumerate(symbol):
+				if word.isdigit():
+					break
 
-            # noinspection PyUnboundLocalVariable
-            product = symbol[:count]
-            year = symbol[count]
-            month = symbol[count + 1:]
+			# Check for index symbol
+			time_str = symbol[count:]
+			if time_str in ["88", "888", "99", "8888"]:
+				return f"{symbol}.XZCE"
 
-            if year == "9":
-                year = "1" + year
-            else:
-                year = "2" + year
+			# noinspection PyUnboundLocalVariable
+			product = symbol[:count]
+			year = symbol[count]
+			month = symbol[count + 1:]
 
-            jq_symbol = f"{product}{year}{month}.XZCE"
+			if year == "9":
+				year = "1" + year
+			else:
+				year = "2" + year
 
-        return jq_symbol.upper()
+			jq_symbol = f"{product}{year}{month}.XZCE"
 
-    def query_history(self, symbol,exchange, start, end,interval = '1m'):
-        """
-        Query history bar data from JQData.
-        """
+		return jq_symbol.upper()
 
-        jq_symbol = self.to_jq_symbol(symbol, exchange)
-        # if jq_symbol not in self.symbols:
-        #     return None
+	def query_history(self, symbol, exchange, start, end, interval='1m'):
+		"""
+		Query history bar data from JQData and update Database.
+		"""
 
-        # For querying night trading period data
-        # end += timedelta(1)
-        now = datetime.now()
-        if end >= now:
-            end = now
-        elif end.year == now.year and end.month == now.month and end.day == now.day:
-            end = now
+		jq_symbol = self.to_jq_symbol(symbol, exchange)
+		# if jq_symbol not in self.symbols:
+		#     return None
 
-        df = jq.get_price(
-            jq_symbol,
-            frequency=interval,
-            fields=["open", "high", "low", "close", "volume"],
-            start_date=start,
-            end_date=end,
-            skip_paused=True
-        )
+		# For querying night trading period data
+		# end += timedelta(1)
+		now = datetime.now()
+		if end >= now:
+			end = now
+		elif end.year == now.year and end.month == now.month and end.day == now.day:
+			end = now
 
-        data: List[BarData] = []
+		df = jq.get_price(
+			jq_symbol,
+			frequency=interval,
+			fields=["open", "high", "low", "close", "volume"],
+			start_date=start,
+			end_date=end,
+			skip_paused=True
+		)
 
-        if df is not None:
-            for ix, row in df.iterrows():
-                bar = BarData(
-                    symbol=symbol,
-                    exchange=exchange,
-                    interval=Interval.MINUTE,
-                    datetime=row.name.to_pydatetime() - timedelta(minutes=1),
-                    open_price=row["open"],
-                    high_price=row["high"],
-                    low_price=row["low"],
-                    close_price=row["close"],
-                    volume=row["volume"],
-                    gateway_name="JQ"
-                )
-                data.append(bar)
-        database_manager.save_bar_data(data)
+		data: List[BarData] = []
 
-        return data
+		if df is not None:
+			for ix, row in df.iterrows():
+				bar = BarData(
+					symbol=symbol,
+					exchange=exchange,
+					interval=Interval.MINUTE,
+					datetime=row.name.to_pydatetime() - timedelta(minutes=1),
+					open_price=row["open"],
+					high_price=row["high"],
+					low_price=row["low"],
+					close_price=row["close"],
+					volume=row["volume"],
+					gateway_name="JQ"
+				)
+				data.append(bar)
+		database_manager.save_bar_data(data)
 
+		return data
 
+	def downloadAllMinuteBar(self, days=1):
+		"""下载所有配置中的合约的分钟线数据"""
+		if days != 0:
+			startDt = datetime.today() - days * timedelta(1)
+			enddt = datetime.today()
+		else:
+			startDt = datetime.today() - 10 * timedelta(1)
+			enddt = datetime.today()
 
-def downloadAllMinuteBar(days = 1,startDate = 0,endDate = 0):
-    """下载所有配置中的合约的分钟线数据"""
-    print('-' * 50)
-    print(u'开始下载合约分钟线数据')
-    print('-' * 50)
-    if days != 0:
-        startDt = datetime.today() - days * timedelta(1)
-        startDate = startDt.strftime('%Y-%m-%d')
-        # startDate = ('2015-01-01')
-        # 添加下载任务
-        enddt = datetime.today()
-        endDate = enddt.strftime('%Y-%m-%d %H:%M:%S')
-    else:
-        startDate = startDate
-        endDate = endDate
+		print('-' * 50)
+		print(u'开始下载合约分钟线数据')
+		print('-' * 50)
 
-    JQdata = JQDataService()
-    # jqdownloadMinuteBarBySymbol('601318.XSHG', '2018-1-1', '2019-5-14')
-    JQdata.query_history('rb8888',Exchange.SHFE, startDt, enddt,)
-    # jqdownloadMinuteBarBySymbol('rb8888day', startDate, endDate)
-    # jqdownloadMinuteBarBySymbol('rb1905', startDate, endDate)
-    # jqdownloadMinuteBarBySymbol('rb1910', startDate, endDate)
-    # jqdownloadMinuteBarBySymbol('rb2001', startDate, endDate)
-    # jqdownloadMinuteBarBySymbol('m1909', startDate, endDate)
-    # jqdownloadMinuteBarBySymbol('m2001', startDate, endDate)
-    # jqdownloadMinuteBarBySymbol('ag1912', startDate, endDate)
-    # jqdownloadMinuteBarBySymbol('ag2002', startDate, endDate)
-    print('-' * 50)
-    print
-    u'合约分钟线数据下载完成'
-    print('-' * 50)
+		if 'Bar.Min' in self.setting:
+
+			l = self.setting["Bar.Min"]
+			for VNSymbol in l:
+				dt0 = time.process_time()
+				symbol = VNSymbol.split(".")[0]
+				exchange = Exchange(VNSymbol.split(".")[1])
+				self.query_history(symbol, exchange, startDt, enddt, interval='1m')
+				cost = (time.process_time() - dt0)
+				print(u'合约%s的分钟K线数据下载完成%s - %s，耗时%s秒' % (symbol, startDt, enddt, cost))
+				print(jq.get_query_count())
+
+			print('-' * 50)
+			print
+			u'合约分钟线数据下载完成'
+			print('-' * 50)
+		return None
+
 
 if __name__ == '__main__':
-    downloadAllMinuteBar(days = 30)
+	JQdata = JQDataService()
+	JQdata.downloadAllMinuteBar(days=30)
