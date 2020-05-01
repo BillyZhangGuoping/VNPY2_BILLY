@@ -1,16 +1,16 @@
 # encoding: UTF-8
 
 import json
-from datetime import datetime, timedelta
-
-from vnpy.trader.constant import Exchange, Interval
-from typing import List
 import time
+from datetime import datetime, timedelta
+from typing import List
+
+import jqdatasdk as jq
+from vnpy.trader.constant import Exchange, Interval
+from vnpy.trader.database import database_manager
 from vnpy.trader.object import (
 	BarData
 )
-from vnpy.trader.database import database_manager
-import jqdatasdk as jq
 
 
 class JQDataService:
