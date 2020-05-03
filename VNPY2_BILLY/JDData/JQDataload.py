@@ -121,21 +121,18 @@ class JQDataService:
 
 		return data
 
-	def downloadAllMinuteBar(self, days=1):
+	def downloadAllMinuteBar(self, days=0):
 		"""下载所有配置中的合约的分钟线数据"""
-		if days != 0:
-			startDt = datetime.today() - days * timedelta(1)
-			enddt = datetime.today()
-		else:
-			startDt = datetime.today() - 10 * timedelta(1)
-			enddt = datetime.today()
+		if days == 0:
+			days = self.setting["days"]
+		startDt = datetime.today() - days * timedelta(1)
+		enddt = datetime.today()
 
 		print('-' * 50)
 		print(u'开始下载合约分钟线数据')
 		print('-' * 50)
 
 		if 'Bar.Min' in self.setting:
-
 			l = self.setting["Bar.Min"]
 			for VNSymbol in l:
 				dt0 = time.process_time()
@@ -155,4 +152,4 @@ class JQDataService:
 
 if __name__ == '__main__':
 	JQdata = JQDataService()
-	JQdata.downloadAllMinuteBar(days=30)
+	JQdata.downloadAllMinuteBar()
