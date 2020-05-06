@@ -20,7 +20,7 @@ class JQDataService:
 
 	def __init__(self):
 		# 加载配置
-		config = open('config.json')
+		config = open('JQDataConfig.json')
 		self.setting = json.load(config)
 
 		USERNAME = self.setting['jqdata.Username']
