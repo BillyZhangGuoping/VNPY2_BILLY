@@ -142,11 +142,11 @@ class JQDataService:
 				cost = (time.process_time() - dt0)
 				print(u'合约%s的分钟K线数据下载完成%s - %s，耗时%s秒' % (symbol, startDt, enddt, cost))
 				print(jq.get_query_count())
-
 			print('-' * 50)
 			print
 			u'合约分钟线数据下载完成'
 			print('-' * 50)
+
 		return None
 
 

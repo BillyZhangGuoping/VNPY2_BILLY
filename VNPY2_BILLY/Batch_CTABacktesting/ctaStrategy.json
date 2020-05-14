@@ -1,0 +1,18 @@
+{
+  "DoubleMaStrategy_CTA_MA8888.CZCE": {
+    "class_name": "AtrRsiStrategy",
+    "vt_symbol": "MA8888.CZCE",
+    "setting": {
+      "atr_length": 10,
+      "atr_ma_length": 50
+    }
+  },
+  "DoubleMaStrategy2_CTA_MA8888.CZCE": {
+    "class_name": "DoubleMaStrategy",
+    "vt_symbol": "MA8888.CZCE",
+    "setting": {
+      "fast_window": 10,
+      "slow_window": 40
+    }
+  }
+}
