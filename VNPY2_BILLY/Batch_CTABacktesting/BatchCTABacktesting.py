@@ -5,14 +5,14 @@ from datetime import datetime, date
 
 from pandas import DataFrame
 from vnpy.app.cta_strategy.backtesting import BacktestingEngine
-
+from vnpy.app.cta_strategy.strategies.atr_rsi_strategy import AtrRsiStrategy
 
 class BatchCTABackTest:
 	"""
 	提供批量CTA策略回测，输出结果到excel或pdf，和CTA策略批量优化，输出结果到excel或pdf，
 	"""
 
-	def __init__(self, vtSymbolconfig="vtSymbol.json"):
+	def __init__(self, vtSymbolconfig="vtSymbol.json", exportpath=".\\"):
 		"""
 		加载配置路径
 		"""
@@ -21,6 +21,7 @@ class BatchCTABackTest:
 		self.setting = json.load(config)
 		self.engine = BacktestingEngine()
 		self.resultDf = DataFrame()
+		self.exportpath = exportpath
 
 	def addParameters(self, vt_symbol: str, startDate, endDate, interval="1m", capital=1_000_000):
 		"""
@@ -64,7 +65,7 @@ class BatchCTABackTest:
 			df = self.engine.calculate_result()
 			resultDict = self.engine.calculate_statistics(df, False)
 			resultDict["class_name"] = strategy_config["class_name"]
-			resultDict["setting"] = strategy_config["class_name"]
+			resultDict["setting"] = strategy_config["setting"]
 			self.resultDf = self.resultDf.append(resultDict, ignore_index=True)
 		self.ResultExcel(self.resultDf)
 		return self.resultDf
@@ -73,11 +74,12 @@ class BatchCTABackTest:
 		# TODO
 		return None
 
-	def ResultExcel(self, result, expertpath=".\\"):
+	def ResultExcel(self, result):
 		# TODO
 		try:
-			path = expertpath + "CTABatch" + str(date.today()) + "v0.xls"
+			path = self.expertpath + "CTABatch" + str(date.today()) + "v0.xls"
 			result.to_excel(path, index=False)
+
 		except:
 			print(traceback.format_exc())
 
@@ -85,6 +87,5 @@ class BatchCTABackTest:
 
 
 if __name__ == '__main__':
-	# TODO
 	bts = BatchCTABackTest()
 	bts.runBatchTestJson()
