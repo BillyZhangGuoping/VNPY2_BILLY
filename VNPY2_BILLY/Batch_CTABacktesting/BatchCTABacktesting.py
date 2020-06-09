@@ -1,6 +1,7 @@
 # encoding: UTF-8
 import json
-from datetime import datetime
+import traceback
+from datetime import datetime, date
 
 from pandas import DataFrame
 from vnpy.app.cta_strategy.backtesting import BacktestingEngine
@@ -43,8 +44,7 @@ class BatchCTABackTest:
 		return None
 
 	def runBatchTestJson(self, jsonpath="ctaStrategy.json", startDate=datetime(2019, 1, 1),
-	                     endDate=datetime(2020, 1, 1), expot='Excel'):
-		# TODO
+	                     endDate=datetime(2020, 1, 1)):
 		"""
 		Load setting file.
 		"""
@@ -56,25 +56,31 @@ class BatchCTABackTest:
 			vt_symbol = strategy_config["vt_symbol"]
 			self.addParameters(vt_symbol, startDate, endDate)
 			self.engine.add_strategy(
-				strategy_config["class_name"],
-				strategy_name,
-				vt_symbol,
+				eval(strategy_config["class_name"]),
 				strategy_config["setting"]
 			)
 			self.engine.load_data()
 			self.engine.run_backtesting()
 			df = self.engine.calculate_result()
-			resultDict = self.engine.calculate_statistics(df)
+			resultDict = self.engine.calculate_statistics(df, False)
+			resultDict["class_name"] = strategy_config["class_name"]
+			resultDict["setting"] = strategy_config["class_name"]
 			self.resultDf = self.resultDf.append(resultDict, ignore_index=True)
-		print(self.resultDf)
+		self.ResultExcel(self.resultDf)
 		return self.resultDf
 
 	def runBatchTestCSV(self, csvpath, expeort='Excel'):
 		# TODO
 		return None
 
-	def ResultExcel(self, result):
+	def ResultExcel(self, result, expertpath=".\\"):
 		# TODO
+		try:
+			path = expertpath + "CTABatch" + str(date.today()) + "v0.xls"
+			result.to_excel(path, index=False)
+		except:
+			print(traceback.format_exc())
+
 		return None
 
 
