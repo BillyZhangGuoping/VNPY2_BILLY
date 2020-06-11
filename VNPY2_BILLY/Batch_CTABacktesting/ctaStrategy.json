@@ -1,10 +1,10 @@
 {
-  "AtrRsiStrategy_CTA_MA8888.CZCE": {
-    "class_name": "AtrRsiStrategy",
+  "BollChannelStrategy_MA8888.CZCE": {
+    "class_name": "BollChannelStrategy",
     "vt_symbol": "MA8888.CZCE",
     "setting": {
-      "atr_length": 10,
-      "atr_ma_length": 50
+      "boll_window": 40,
+      "boll_dev": 3
     }
   },
   "DoubleMaStrategy2_CTA_rb8888.SHFE": {
@@ -13,6 +13,13 @@
     "setting": {
       "fast_window": 10,
       "slow_window": 40
+    }
+  },
+  "TurtleSignalStrategy_CTA_rb8888.SHFE": {
+    "class_name": "TurtleSignalStrategy",
+    "vt_symbol": "rb8888.SHFE",
+    "setting": {
+      "entry_window": 20
     }
   }
 }
