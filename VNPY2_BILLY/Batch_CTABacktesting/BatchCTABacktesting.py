@@ -6,6 +6,7 @@ from datetime import datetime, date
 from pandas import DataFrame
 from vnpy.app.cta_strategy.backtesting import BacktestingEngine
 from vnpy.app.cta_strategy.strategies.atr_rsi_strategy import AtrRsiStrategy
+from vnpy.app.cta_strategy.strategies.double_ma_strategy import DoubleMaStrategy
 
 class BatchCTABackTest:
 	"""
@@ -16,18 +17,15 @@ class BatchCTABackTest:
 		"""
 		加载配置路径
 		"""
-		# TODO
 		config = open(vtSymbolconfig)
 		self.setting = json.load(config)
 		self.engine = BacktestingEngine()
-		self.resultDf = DataFrame()
 		self.exportpath = exportpath
 
 	def addParameters(self, vt_symbol: str, startDate, endDate, interval="1m", capital=1_000_000):
 		"""
-
+		从vtSymbol.json文档读取品种的交易属性，比如费率，交易每跳，比率，滑点
 		"""
-		# TODO
 		if vt_symbol in self.setting:
 			self.engine.set_parameters(
 				vt_symbol=vt_symbol,
@@ -44,15 +42,11 @@ class BatchCTABackTest:
 			print("symbol %s hasn't be maintained in config file" % vt_symbol)
 		return None
 
-	def runBatchTestJson(self, jsonpath="ctaStrategy.json", startDate=datetime(2019, 1, 1),
-	                     endDate=datetime(2020, 1, 1)):
+	def runBatchTest(self, strategy_setting, startDate, endDate):
 		"""
-		Load setting file.
+		进行回测
 		"""
-
-		with open(jsonpath, mode="r", encoding="UTF-8") as f:
-			strategy_setting = json.load(f)
-
+		resultDf = DataFrame()
 		for strategy_name, strategy_config in strategy_setting.items():
 			vt_symbol = strategy_config["vt_symbol"]
 			self.addParameters(vt_symbol, startDate, endDate)
@@ -66,19 +60,54 @@ class BatchCTABackTest:
 			resultDict = self.engine.calculate_statistics(df, False)
 			resultDict["class_name"] = strategy_config["class_name"]
 			resultDict["setting"] = strategy_config["setting"]
-			self.resultDf = self.resultDf.append(resultDict, ignore_index=True)
-		self.ResultExcel(self.resultDf)
-		return self.resultDf
+			resultDict["vt_symbol"] = strategy_config["vt_symbol"]
+			resultDf = resultDf.append(resultDict, ignore_index=True)
+		return resultDf
+
+	def runBatchTestJson(self, jsonpath="ctaStrategy.json", startDate=datetime(2019, 1, 1),
+	                     endDate=datetime(2020, 1, 1), exporpath=None):
+		"""
+		从ctaStrategy.json去读交易策略和参数，进行回测
+		"""
+		with open(jsonpath, mode="r", encoding="UTF-8") as f:
+			strategy_setting = json.load(f)
+		resultDf = self.runBatchTest(strategy_setting, startDate, endDate)
+		# for strategy_name, strategy_config in strategy_setting.items():
+		# 	vt_symbol = strategy_config["vt_symbol"]
+		# 	self.addParameters(vt_symbol, startDate, endDate)
+		# 	self.engine.add_strategy(
+		# 		eval(strategy_config["class_name"]),
+		# 		strategy_config["setting"]
+		# 	)
+		# 	self.engine.load_data()
+		# 	self.engine.run_backtesting()
+		# 	df = self.engine.calculate_result()
+		# 	resultDict = self.engine.calculate_statistics(df, False)
+		# 	resultDict["class_name"] = strategy_config["class_name"]
+		# 	resultDict["setting"] = strategy_config["setting"]
+		# 	resultDict["vt_symbol"]= strategy_config["vt_symbol"]
+		# 	self.resultDf = self.resultDf.append(resultDict, ignore_index=True)
+		self.ResultExcel(resultDf, exporpath)
+		return resultDf
 
 	def runBatchTestCSV(self, csvpath, expeort='Excel'):
-		# TODO
+		"""
+		从ctaStrategy.excel去读交易策略和参数，进行回测
+		"""
 		return None
 
-	def ResultExcel(self, result):
-		# TODO
+	def ResultExcel(self, result, export=None):
+		"""
+		输出交易结果到excel
+		"""
+		if export != None:
+			exportpath = export
+		else:
+			exportpath = self.exportpath
 		try:
-			path = self.expertpath + "CTABatch" + str(date.today()) + "v0.xls"
+			path = exportpath + "CTABatch" + str(date.today()) + "v0.xls"
 			result.to_excel(path, index=False)
+			print("CTA Batch result is export to %s" % path)
 
 		except:
 			print(traceback.format_exc())
