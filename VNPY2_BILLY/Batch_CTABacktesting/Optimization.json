@@ -1,0 +1,13 @@
+{
+  "BollChannelStrategy_MA8888.CZCE": {
+    "class_name": "DT",
+    "vt_symbol": "MA8888.CZCE",
+    "setting": {
+        "boll_window": [10,50,1],
+        "boll_dev": [1.5,6.0,0.1],
+        "cci_window": [15,50,5],
+        "atr_window": [15,50,5],
+        "sl_multiplier": [2.0,20.0,0.5]
+    }
+  }
+}

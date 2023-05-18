@@ -1,0 +1,73 @@
+{
+  "jqdata.Username": "18202558310",
+  "jqdata.Password": "Jq18202558310",
+  "start_date": "20201107",
+  "check_days":100,
+  "symbol_list": {
+    "rb":
+		{
+		"name":"螺纹钢",
+		"PriceTick": 1
+		},
+    "i":
+		{
+		"name":"铁矿",
+		"PriceTick": 0.5
+		},
+    "hc":
+		{
+		"name":"热卷",
+		"PriceTick": 1
+		},
+    "SM":
+		{
+		"name":"锰硅",
+		"PriceTick": 2
+		},
+    "j":
+		{
+		"name":"焦炭",
+		"PriceTick": 0.5
+		},
+    "ZC":
+		{
+		"name":"动力煤",
+		"PriceTick": 0.2
+		},
+    "ru":
+		{
+		"name":"橡胶",
+		"PriceTick": 5
+		},
+    "TA":
+		{
+		"name":"PTA",
+		"PriceTick": 2
+		},
+    "pp":
+		{
+		"name":"pp",
+		"PriceTick": 1
+		},
+    "jd":
+		{
+		"name":"鸡蛋",
+		"PriceTick": 1
+		},
+	"sc":
+		{
+		"name":"原油",
+		"PriceTick": 0.1
+		},
+	"ni":
+		{
+		"name":"沪镍",
+		"PriceTick": 10
+		},
+	"bu":
+		{
+		"name":"沥青",
+		"PriceTick": 2
+		}
+  }
+}

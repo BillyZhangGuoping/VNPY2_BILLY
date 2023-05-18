@@ -1,0 +1,11 @@
+{
+  "TurtleSignalStrategy_MA8888.SHFE": {
+    "class_name": "TurtleSignalStrategy",
+    "vt_symbol": "MA8888.CZCE",
+    "setting": {
+      "entry_window": [5,50,5],
+      "exit_window": [5,50,5],
+      "atr_window": [5,50,5]
+    }
+  }
+}

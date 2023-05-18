@@ -1,0 +1,14 @@
+{
+  "MA8888.CZCE": {
+    "rate": 0.0001,
+    "slippage": 1,
+    "size": 10,
+    "pricetick": 1
+  },
+  "rb8888.SHFE": {
+    "rate": 0.0001,
+    "slippage": 1,
+    "size": 10,
+    "pricetick": 1
+  }
+}
